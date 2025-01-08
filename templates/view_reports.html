@@ -1,0 +1,160 @@
+{# templates/view_reports.html #}
+{% extends 'base.html' %}
+
+{% block title %}View Reports - Corruption Reporting Platform{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <h1 class="caveat-font text-3xl font-bold text-blue-500">Corruption Reports</h1>
+    
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
+        <div class="flex flex-wrap gap-4 mb-6">
+            <div class="flex-1 min-w-[200px]">
+                <select id="typeFilter" class="w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2">
+                    <option value="">All Types</option>
+                    <option value="bribery">Bribery</option>
+                    <option value="fraud">Fraud</option>
+                    <option value="embezzlement">Embezzlement</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <select id="dateFilter" class="w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="year">This Year</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <input type="text" id="searchFilter" placeholder="Search reports..." 
+                       class="w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2">
+            </div>
+        </div>
+
+        <div id="reportsList" class="space-y-4">
+            <!-- Reports will be loaded here -->
+            <div class="animate-pulse">
+                <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                <div class="space-y-3 mt-4">
+                    <div class="h-4 bg-gray-700 rounded"></div>
+                    <div class="h-4 bg-gray-700 rounded w-5/6"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-between items-center">
+            <div class="text-gray-400">
+                Showing <span id="reportCount">0</span> reports
+            </div>
+            <div class="space-x-2">
+                <button id="prevPage" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">Previous</button>
+                <button id="nextPage" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">Next</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    let currentPage = 1;
+    const perPage = 10;
+    let currentFilters = {
+        type: '',
+        date: 'all',
+        search: ''
+    };
+
+    function loadReports() {
+        $.get('/api/get-filtered-reports', {
+            ...currentFilters,
+            page: currentPage,
+            per_page: perPage
+        }, function(data) {
+            const reportsList = $('#reportsList');
+            reportsList.empty();
+
+            data.reports.forEach(report => {
+                const date = new Date(report.created_at).toLocaleDateString();
+                const statusClass = getStatusClass(report.status);
+                
+                reportsList.append(`
+                    <div class="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold text-lg text-blue-400">${report.incident_type}</h3>
+                                <p class="text-gray-300 mt-1">${report.description}</p>
+                                <div class="flex gap-2 mt-2">
+                                    <span class="${statusClass} text-sm px-2 py-1 rounded-full">${report.status}</span>
+                                    ${report.has_evidence ? '<span class="bg-yellow-500 text-yellow-900 text-sm px-2 py-1 rounded-full">Evidence</span>' : ''}
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-400">${date}</span>
+                        </div>
+                    </div>
+                `);
+            });
+
+            $('#reportCount').text(data.total);
+            updatePaginationButtons(data.total);
+        });
+    }
+
+    function getStatusClass(status) {
+        const classes = {
+            'new': 'bg-blue-500 text-white',
+            'in_progress': 'bg-yellow-500 text-yellow-900',
+            'resolved': 'bg-green-500 text-green-900',
+            'closed': 'bg-gray-500 text-white'
+        };
+        return classes[status] || 'bg-gray-500 text-white';
+    }
+
+    function updatePaginationButtons(total) {
+        const totalPages = Math.ceil(total / perPage);
+        $('#prevPage').prop('disabled', currentPage === 1);
+        $('#nextPage').prop('disabled', currentPage === totalPages);
+    }
+
+    // Event handlers
+    $('#typeFilter, #dateFilter').on('change', function() {
+        currentFilters.type = $('#typeFilter').val();
+        currentFilters.date = $('#dateFilter').val();
+        currentPage = 1;
+        loadReports();
+    });
+
+    $('#searchFilter').on('input', debounce(function() {
+        currentFilters.search = $(this).val();
+        currentPage = 1;
+        loadReports();
+    }, 300));
+
+    $('#prevPage').on('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            loadReports();
+        }
+    });
+
+    $('#nextPage').on('click', function() {
+        currentPage++;
+        loadReports();
+    });
+
+    // Initial load
+    loadReports();
+});
+
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+</script>
+{% endblock %}
+{% endblock %}

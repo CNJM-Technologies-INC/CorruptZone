@@ -1,0 +1,67 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+.virtualenv/
+
+# Configuration and sensitive files
+*.env
+*.secret
+config.json
+credentials.json
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs and debugging files
+*.log
+*.out
+*.err
+logs/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+# Python package managers
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+.nox/
+
+# Test results
+*.pytest_cache/
+*.coverage
+.cache/
+
+# Temporary files
+*.tmp
+*.temp
+*.lock
+
+# Docker and container files
+*.container
+.dockerignore

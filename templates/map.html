@@ -1,0 +1,40 @@
+{# templates/map.html #}
+{% extends 'base.html' %}
+
+{% block title %}Map - Corruption Reports{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-3xl caveat-font font-bold  text-blue-500 ">Corruption Reports Map</h1>
+    <div id="map" class="h-[600px] rounded-lg shadow-md"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    const map = L.map('map').setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    function loadReports() {
+        $.get('/api/get-reports', function(data) {
+            data.features.forEach(feature => {
+                const coords = feature.geometry.coordinates;
+                const props = feature.properties;
+                
+                const marker = L.marker([coords[1], coords[0]]).addTo(map);
+                marker.bindPopup(`
+                    <strong>${props.incident_type}</strong><br>
+                    ${props.description}<br>
+                    <small>Reported: ${new Date(props.created_at).toLocaleDateString()}</small>
+                `);
+            });
+        });
+    }
+
+    loadReports();
+});
+</script>
+{% endblock %}

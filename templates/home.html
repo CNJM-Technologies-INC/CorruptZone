@@ -1,0 +1,155 @@
+{# templates/home.html #}
+{% extends 'base.html' %}
+
+{% block title %}Home - Whistleblower Platform{% endblock %}
+
+{% block content %}
+<div class="space-y-12">
+    {# Enhanced Hero Section #}
+    <div class="text-center space-y-6 py-12 gradient-dark rounded-2xl text-white border border-gray-800 relative overflow-hidden"
+         data-aos="fade-up">
+        <!-- Animated background elements -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-20 h-20 bg-blue-500 rounded-full float-animation" style="animation-delay: 0s;"></div>
+            <div class="absolute top-20 right-20 w-16 h-16 bg-yellow-500 rounded-full float-animation" style="animation-delay: 0.5s;"></div>
+            <div class="absolute bottom-20 left-1/4 w-24 h-24 bg-green-500 rounded-full float-animation" style="animation-delay: 1s;"></div>
+        </div>
+
+        <h1 class="caveat-font text-5xl font-bold sm:text-6xl gradient-text">
+            Report Corruption Anonymously
+        </h1>
+        <p class="max-w-2xl mx-auto text-lg text-gray-300">
+            Help fight corruption by safely and anonymously reporting incidents. Your voice matters in creating a more transparent society.
+        </p>
+        <div class="flex justify-center gap-4">
+            <a href="{{ url_for('report') }}" 
+               class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all pulse-animation">
+                Report Incident
+            </a>
+            <a href="{{ url_for('view_reports') }}" 
+               class="bg-gray-700 text-white px-6 py-3 rounded-lg border border-gray-600 hover:bg-gray-600 hover:scale-105 transition-all">
+                View Reports
+            </a>
+        </div>
+    </div>
+
+    {# Enhanced Stats Section #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="hover-card bg-gray-800 p-8 rounded-xl border border-gray-700 text-center" data-aos="fade-up" data-aos-delay="100">
+            <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600" id="totalReports">-</div>
+            <div class="text-gray-400 mt-2">Total Reports</div>
+        </div>
+        <div class="hover-card bg-gray-800 p-8 rounded-xl border border-gray-700 text-center" data-aos="fade-up" data-aos-delay="200">
+            <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600" id="recentReports">-</div>
+            <div class="text-gray-400 mt-2">Reports This Month</div>
+        </div>
+        <div class="hover-card bg-gray-800 p-8 rounded-xl border border-gray-700 text-center" data-aos="fade-up" data-aos-delay="300">
+            <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600" id="locationsCount">-</div>
+            <div class="text-gray-400 mt-2">Affected Locations</div>
+        </div>
+    </div>
+
+
+    {# Recent Reports Section #}
+    <div class="bg-gray-800 rounded-xl border border-gray-700 p-8">
+        <h2 class="caveat-font text-2xl font-bold text-blue-400 mb-6">Recent Reports</h2>
+        <div id="recentReportsList" class="space-y-6">
+            <div class="animate-pulse">
+                <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                <div class="space-y-3 mt-4">
+                    <div class="h-4 bg-gray-700 rounded"></div>
+                    <div class="h-4 bg-gray-700 rounded w-5/6"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Report Types Section #}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-gray-800 rounded-xl border border-gray-700 p-8">
+            <h2 class="caveat-font text-2xl font-bold text-blue-400 mb-6">Report Types</h2>
+            <div id="reportTypes" class="space-y-4">
+                <div class="animate-pulse">
+                    <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                    <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-800 rounded-xl border border-gray-700 p-8">
+            <h2 class="caveat-font text-2xl font-bold text-blue-400 mb-6">Impact Overview</h2>
+            <div class="space-y-4">
+                <p class="text-gray-300">Your reports help:</p>
+                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                    <li>Identify corruption patterns</li>
+                    <li>Alert authorities to systematic issues</li>
+                    <li>Promote transparency in governance</li>
+                    <li>Protect public resources</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    function loadStats() {
+        $.get('/api/get-stats', function(data) {
+            $('#totalReports').text(data.total_reports.toLocaleString());
+            $('#recentReports').text(data.recent_reports.toLocaleString());
+            $('#locationsCount').text(data.locations_count.toLocaleString());
+            
+            const reportTypes = $('#reportTypes');
+            reportTypes.empty();
+            
+            Object.entries(data.reports_by_type).forEach(([type, count]) => {
+                const percentage = (count / data.total_reports * 100).toFixed(1);
+                reportTypes.append(`
+                    <div class="mb-4">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-gray-300 capitalize">${type}</span>
+                            <span class="text-gray-400">${count.toLocaleString()} reports</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `);
+            });
+        });
+    }
+
+    function loadRecentReports() {
+        $.get('/api/get-recent-reports', function(reports) {
+            const reportsList = $('#recentReportsList');
+            reportsList.empty();
+
+            reports.forEach(report => {
+                const date = new Date(report.created_at).toLocaleDateString();
+                reportsList.append(`
+                    <div class="border-b border-gray-700 pb-6">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-semibold text-lg text-blue-400">${report.incident_type}</h3>
+                                <p class="text-gray-300 mt-1">${report.description}</p>
+                                ${report.has_evidence ? 
+                                    '<span class="inline-block mt-2 bg-yellow-500 text-yellow-900 text-sm px-2 py-1 rounded-full">Evidence attached</span>' : 
+                                    ''}
+                            </div>
+                            <span class="text-sm text-gray-400">${date}</span>
+                        </div>
+                    </div>
+                `);
+            });
+        });
+    }
+
+    loadStats();
+    loadRecentReports();
+
+    setInterval(loadStats, 300000);
+    setInterval(loadRecentReports, 300000);
+});
+</script>
+{% endblock %}
+{% endblock %}
