@@ -3,10 +3,132 @@
 
 {% block title %}Map - Corruption Reports{% endblock %}
 
+{% block extra_head %}
+<style>
+/* Previous styles remain the same */
+.map-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background: rgba(30, 41, 59, 0.9);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    color: #e2e8f0;
+}
+
+.marker-cluster {
+    background-color: rgba(59, 130, 246, 0.6);
+    border: 2px solid rgba(59, 130, 246, 0.8);
+    color: white;
+}
+
+.privacy-notice {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Dark theme overrides */
+body {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+select {
+    background-color: #334155;
+    color: #e2e8f0;
+    border-color: #475569;
+}
+
+select:focus {
+    border-color: #3b82f6;
+    outline-color: #3b82f6;
+}
+
+.error-message {
+    background-color: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgb(239, 68, 68);
+    color: rgb(254, 226, 226);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    display: none;
+}
+</style>
+{% endblock %}
+
 {% block content %}
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.css"></script>
+<!-- Add Error Message Container -->
+<div id="errorMessage" class="error-message"></div>
+
 <div class="space-y-6">
-    <h1 class="text-3xl caveat-font font-bold  text-blue-500 ">Corruption Reports Map</h1>
-    <div id="map" class="h-[600px] rounded-lg shadow-md"></div>
+    <!-- Rest of the header and privacy notice sections remain the same -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl caveat-font font-bold text-blue-400">Corruption Reports Map</h1>
+        <div class="flex gap-4">
+            <select id="timeFilter" class="rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-slate-800">
+                <option value="all">All Time</option>
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="365">Last year</option>
+            </select>
+            <select id="typeFilter" class="rounded-md border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-slate-800">
+                <option value="all">All Types</option>
+                <option value="bribery">Bribery</option>
+                <option value="fraud">Fraud</option>
+                <option value="embezzlement">Embezzlement</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Privacy Notice -->
+    <div class="privacy-notice bg-slate-800 border border-slate-700 rounded-lg p-4 text-sm text-blue-300">
+        <div class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Locations are approximated to protect whistleblower privacy</span>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="relative">
+        <div id="map" class="h-[600px] rounded-lg shadow-md"></div>
+        <div id="loading" class="map-loading hidden">
+            <div class="flex items-center gap-3">
+                <svg class="animate-spin h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Loading reports...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-800 p-6 rounded-lg shadow-sm border border-slate-700">
+            <h3 class="text-sm font-medium text-slate-400">Total Reports</h3>
+            <p class="text-2xl font-semibold mt-1 text-slate-200" id="totalReports">-</p>
+        </div>
+        <div class="bg-slate-800 p-6 rounded-lg shadow-sm border border-slate-700">
+            <h3 class="text-sm font-medium text-slate-400">Most Active Region</h3>
+            <p class="text-2xl font-semibold mt-1 text-slate-200" id="activeRegion">-</p>
+        </div>
+        <div class="bg-slate-800 p-6 rounded-lg shadow-sm border border-slate-700">
+            <h3 class="text-sm font-medium text-slate-400">Recent Reports</h3>
+            <p class="text-2xl font-semibold mt-1 text-slate-200" id="recentReports">-</p>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -18,23 +140,109 @@ $(document).ready(function() {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    function loadReports() {
-        $.get('/api/get-reports', function(data) {
-            data.features.forEach(feature => {
-                const coords = feature.geometry.coordinates;
-                const props = feature.properties;
-                
-                const marker = L.marker([coords[1], coords[0]]).addTo(map);
-                marker.bindPopup(`
-                    <strong>${props.incident_type}</strong><br>
-                    ${props.description}<br>
-                    <small>Reported: ${new Date(props.created_at).toLocaleDateString()}</small>
-                `);
-            });
+    const markers = L.markerClusterGroup({
+        maxClusterRadius: 50,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true
+    });
+
+    function filterReportsByDate(reports, timeRange) {
+        if (timeRange === 'all') return reports;
+        
+        const now = new Date();
+        const cutoff = new Date(now - timeRange * 24 * 60 * 60 * 1000);
+        
+        return reports.filter(report => {
+            const reportDate = new Date(report.properties.created_at);
+            return reportDate >= cutoff;
         });
     }
 
-    loadReports();
+    function filterReportsByType(reports, type) {
+        if (type === 'all') return reports;
+        return reports.filter(report => report.properties.incident_type.toLowerCase() === type.toLowerCase());
+    }
+
+    function updateMap() {
+        const timeRange = $('#timeFilter').val();
+        const type = $('#typeFilter').val();
+        
+        $('#loading').removeClass('hidden');
+        $('#errorMessage').hide();
+        markers.clearLayers();
+
+        $.get('/api/get-reports')
+            .done(function(data) {
+                let filteredReports = data.features;
+                filteredReports = filterReportsByDate(filteredReports, timeRange);
+                filteredReports = filterReportsByType(filteredReports, type);
+
+                let total = 0;
+                let recent = 0;
+                const regions = {};
+                const now = new Date();
+
+                filteredReports.forEach(feature => {
+                    const coords = feature.geometry.coordinates;
+                    const props = feature.properties;
+                    
+                    total++;
+                    
+                    // Update recent count (last 7 days)
+                    if (new Date(props.created_at) > new Date(now - 7 * 24 * 60 * 60 * 1000)) {
+                        recent++;
+                    }
+
+                    // Create marker
+                    const marker = L.marker([coords[1], coords[0]]);
+                    
+                    // Create popup content
+                    const popupContent = `
+                        <div class="p-3 bg-slate-800 text-slate-200">
+                            <h3 class="font-semibold text-blue-400">${props.incident_type}</h3>
+                            <p class="mt-2 text-sm">${props.description}</p>
+                            <div class="mt-2 text-xs text-slate-400">
+                                Reported: ${new Date(props.created_at).toLocaleDateString()}<br>
+                                ${props.has_evidence ? '<span class="text-green-400">✓ Evidence Attached</span>' : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent);
+                    markers.addLayer(marker);
+                });
+
+                // Update stats display
+                $('#totalReports').text(total);
+                $('#recentReports').text(recent);
+                
+                if (total === 0) {
+                    $('#activeRegion').text('No reports');
+                } else {
+                    const activeRegion = Object.entries(regions)
+                        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'None';
+                    $('#activeRegion').text(activeRegion);
+                }
+
+                map.addLayer(markers);
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                const errorMessage = jqXHR.responseJSON?.message || 'Failed to load reports';
+                $('#errorMessage')
+                    .text(errorMessage)
+                    .show();
+            })
+            .always(function() {
+                $('#loading').addClass('hidden');
+            });
+    }
+
+    // Event listeners
+    $('#timeFilter, #typeFilter').on('change', updateMap);
+
+    // Initial load
+    updateMap();
 });
 </script>
 {% endblock %}

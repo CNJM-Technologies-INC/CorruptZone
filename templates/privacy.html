@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - Whistleblower{% endblock %}
+
+{% block extra_head %}
+<style>
+    .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeIn 0.8s ease-out forwards;
+    }
+    
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .privacy-section {
+        animation-delay: calc(var(--section-index) * 0.2s);
+    }
+    
+    .shield-pulse {
+        animation: shieldPulse 2s infinite;
+    }
+    
+    @keyframes shieldPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-12">
+    <!-- Header Section -->
+    <div class="text-center space-y-4 fade-in" style="--section-index: 1;">
+        <div class="flex justify-center mb-6">
+            <div class="shield-pulse">
+                <svg class="w-20 h-20 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+            </div>
+        </div>
+        <h1 class="text-4xl font-bold gradient-text">Your Privacy Is Our Priority</h1>
+        <p class="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            We've implemented industry-leading security measures to ensure your identity remains protected while fighting corruption.
+        </p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid gap-12">
+        <!-- Anonymity Section -->
+        <section class="fade-in" style="--section-index: 2;">
+            <h2 class="text-2xl font-semibold mb-4">Complete Anonymity</h2>
+            <div class="prose dark:prose-invert max-w-none">
+                <p>Your identity is protected through multiple layers of security:</p>
+                <ul class="space-y-4">
+                    <li>No personal information is ever required to submit a report</li>
+                    <li>All data is encrypted end-to-end using military-grade encryption</li>
+                    <li>IP addresses are automatically stripped from all submissions</li>
+                    <li>Secure file upload system that removes metadata from documents</li>
+                </ul>
+            </div>
+        </section>
+{# 
+        <!-- Data Collection Section -->
+        <section class="fade-in" style="--section-index: 3;">
+            <h2 class="text-2xl font-semibold mb-4">Data We Collect</h2>
+            <div class="prose dark:prose-invert max-w-none">
+                <p>We collect only the minimum information necessary to process corruption reports:</p>
+                <ul class="space-y-4">
+                    <li>Report content and associated evidence (with metadata removed)</li>
+                    <li>General location data (city/region level only, never precise locations)</li>
+                    <li>Date of submission</li>
+                    <li>Category of corruption being reported</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Security Measures Section -->
+        <section class="fade-in" style="--section-index: 4;">
+            <h2 class="text-2xl font-semibold mb-4">Our Security Measures</h2>
+            <div class="prose dark:prose-invert max-w-none">
+                <p>We employ multiple security layers to protect your information:</p>
+                <ul class="space-y-4">
+                    <li>AES-256 encryption for all stored data</li>
+                    <li>Regular security audits by independent firms</li>
+                    <li>Secure servers located in privacy-friendly jurisdictions</li>
+                    <li>Automatic data purge system for outdated information</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Legal Protection Section -->
+        <section class="fade-in" style="--section-index: 5;">
+            <h2 class="text-2xl font-semibold mb-4">Legal Protection</h2>
+            <div class="prose dark:prose-invert max-w-none">
+                <p>We are committed to protecting whistleblowers:</p>
+                <ul class="space-y-4">
+                    <li>We never share information with third parties unless legally required</li>
+                    <li>Our legal team will fight any attempts to unmask whistleblowers</li>
+                    <li>We operate under strict whistleblower protection laws</li>
+                    <li>Regular consultation with privacy experts and human rights lawyers</li>
+                </ul>
+            </div>
+        </section>
+    </div> #}
+
+    <!-- Contact Section -->
+    <section class="fade-in bg-slate-100 dark:bg-slate-800 rounded-lg p-8 mt-12" style="--section-index: 6;">
+        <h2 class="text-2xl font-semibold mb-4">Privacy Concerns?</h2>
+        <p class="text-slate-600 dark:text-slate-400 mb-6">
+            If you have any questions about our privacy practices or need to report a privacy concern, please contact our Privacy Officer through our secure channels:
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+            <a href="mailto:privacy@whistleblower.org" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-colors">
+                Contact Privacy Officer
+            </a>
+            <a href="#" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-primary/10 hover:bg-primary/20 transition-colors">
+                Read Full Policy
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}

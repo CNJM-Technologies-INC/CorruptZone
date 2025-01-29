@@ -47,6 +47,10 @@ def report():
 def map_view():
     return render_template('map.html')
 
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
 @app.route('/api/submit-report', methods=['POST'])
 def submit_report():
     try:
