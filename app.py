@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 # Configuration
 app.config['SECRET_KEY'] = 'dev-secret-key'
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/corruption_reports'
+app.config['MONGO_URI'] = 'mongodb+srv://cnjmtechnologiesinc:Fink-Hoes-73@cluster0.lnxkd.mongodb.net/corruption_reports'
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/uploads')
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB max file size
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'pdf', 'mp3', 'mp4'}
