@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, render_template, jsonify, request
 from flask_pymongo import PyMongo
 from datetime import datetime, timedelta
